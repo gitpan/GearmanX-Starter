@@ -12,7 +12,7 @@ WriteMakefile(
       : ()),
     PL_FILES            => {},
     PREREQ_PM => {
-        'Gearman::XS' => 0,
+        'Gearman::XS' => "0.08",
         'Perl::Unsafe::Signals' => 0,
         'Test::More' => 0,
     },

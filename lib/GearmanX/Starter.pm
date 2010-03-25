@@ -8,7 +8,7 @@ use Gearman::XS::Worker;
 use Perl::Unsafe::Signals;
 use POSIX;
 
-our $VERSION = '0.01';
+our $VERSION = '0.02';
 
 our (%FUNCTIONS, $WORKER);
 
@@ -62,11 +62,6 @@ sub start {
   # that we're in a critical section of code
   $logger->info("Adding functions to $worker_name worker") if $logger;
   my $func_list = $args->{func_list} || [];
-  if ( !exists($args->{list_func}) || $args->{list_func} ) {
-    my $list_fn_name = $args->{list_func} || "list:$$";
-    $list_fn_name =~ s/%PID%/$$/;
-    push @$func_list, [ $list_fn_name, \&_list ];
-  }
   if ( !exists($args->{dereg_func}) || $args->{dereg_func} ) {
     my $dereg_fn_name = $args->{dereg_func} || "dereg:$$";
     $dereg_fn_name =~ s/%PID%/$$/;
@@ -151,35 +146,12 @@ sub _Init {
   return 0;
 }
 
-sub _list {
-  my $job = shift;
-
-  return '' unless %FUNCTIONS;
-  return join " ", sort keys %FUNCTIONS;
-}
-
 sub _unregister {
   my $job = shift;
-  my $workload = $job->workload();
 
-  my $dereg;
-  if ( $workload =~ m|^/| ) {
-    s|^/||, s|/$|| for $workload;
-    $dereg = qr/$workload/;
-  } else {
-    $dereg = qr/^\Q$workload\E$/;
-  }
+  $WORKER->unregister($job->workload);
 
-  my $cnt = 0;
-  for my $f (keys %FUNCTIONS) {
-    if ( $f =~ /$dereg/ ) {
-      $cnt++;
-      $WORKER->unregister($f);
-      delete $FUNCTIONS{$f};
-    }
-  }
-
-  return $cnt;
+  return "1";
 }
 
 1;
@@ -272,15 +244,6 @@ E.g.:
     ['func3', \&func3, '', $options]
   ],
   ...
-
-=item list_func
-
-Optional. By default, a function will be registered that will return a list all of
-the names of the registered functions for the worker. The name of the function
-will be 'list:%PID%' where '%PID%' will be the pid of the worker process.
-You can use this option to change the name, and you can use the string '%PID%' in
-the name and it will be replaced by the pid of the worker. If a false value is
-used for this option, the list function will not be registered.
 
 =item dereg_func
 

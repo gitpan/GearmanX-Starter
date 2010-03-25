@@ -1,12 +1,15 @@
 GearmanX-Starter
 
 If you want to run tests on a live local gearman server, set
-the environment variable GEARMAN_LIVE_TEST to "1",
+the environment variable GEARMAN_LIVE_TEST to "1".
+Make sure a gearmand server process is started on the local
+server (this test suite does not start gearmand). To start a gearman
+server, enter (adjust path as appropriate):
+/usr/local/sbin/gearmand -d
+
 A worker will be created and functions will be registered.
-The test will attempt to terminate the worker, but if this
-fails or doesn't run, then running the test suite
-again will fail until the process is manually
-terminated.
+The test will attempt to terminate the worker when finished
+with the test suite.
 
 
 INSTALLATION
