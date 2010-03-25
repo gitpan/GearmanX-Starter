@@ -8,9 +8,9 @@ use Gearman::XS::Worker;
 use Perl::Unsafe::Signals;
 use POSIX;
 
-our $VERSION = '0.02';
+our $VERSION = '0.03';
 
-our (%FUNCTIONS, $WORKER);
+our $WORKER;
 
 sub new {
   my $class = shift;
@@ -69,7 +69,6 @@ sub start {
   }
   for my $fun (@$func_list) {
     my ($name, $f, $dont_wrap, $options) = @$fun;
-    $FUNCTIONS{$name}++;
     my $wrapper = $dont_wrap ? $f : sub { $critical = 1; goto $f };
     my $ret2 = $WORKER->add_function($name, 0, $wrapper, $options);
     if ($ret2 != GEARMAN_SUCCESS) {

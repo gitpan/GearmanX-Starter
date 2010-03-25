@@ -1,5 +1,8 @@
 Revision history for GearmanX-Starter
 
+0.03    Wed Mar 24 18:14:12 PDT 2010
+        Removed FUNCTIONS hash
+
 0.02    Wed Mar 24 18:14:12 PDT 2010
         Removed list function. Same/better functionality is
         available from Net::Telnet::Gearman.
