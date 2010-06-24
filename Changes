@@ -1,5 +1,8 @@
 Revision history for GearmanX-Starter
 
+0.04    Thu Jun 24 14:02:30 PDT 2010
+        Create global flag to end worker.
+
 0.03    Wed Mar 24 18:14:12 PDT 2010
         Removed FUNCTIONS hash
 

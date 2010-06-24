@@ -1,6 +1,6 @@
 --- #YAML:1.0
 name:               GearmanX-Starter
-version:            0.03
+version:            0.04
 abstract:           Start Gearman Workers
 author:
     - Douglas Wilson <dougw@cpan.org>

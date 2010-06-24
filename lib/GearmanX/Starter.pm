@@ -8,9 +8,11 @@ use Gearman::XS::Worker;
 use Perl::Unsafe::Signals;
 use POSIX;
 
-our $VERSION = '0.03';
+our $VERSION = '0.04';
 
 our $WORKER;
+
+our $QUIT;
 
 sub new {
   my $class = shift;
@@ -37,10 +39,10 @@ sub start {
 
   _Init() and return 1;
 
-  my ($quit, $critical);
+  my $critical;
   for my $sig (@$sigterm) {
     $SIG{$sig} = sub {
-      $quit++;
+      $QUIT++;
       die "GearmanXQuitLoop\n" if !$critical
     };
   }
@@ -93,7 +95,7 @@ sub start {
       $logger->logdie("Error running loop for worker $worker_name [$@]:". $WORKER->error)
         if $logger;
     }
-    last if $quit;
+    last if $QUIT;
   }
   $logger->info("Exiting $worker_name")
     if $logger;
@@ -206,7 +208,7 @@ Starts a Gearman worker and registers functions. Forks and backgrounds
 the forked process as a daemon. When the worker receives a SIGTERM signal,
 it will complete any current request and then exit.
 
-=head1 METHOD
+=head1 METHODS
 
 =head2 new()
 
@@ -280,6 +282,17 @@ in a worker with servers already added.
 
 Optional. A L<Gearman::XS::Worker> object. A new object is created if this is
 not supplied.
+
+=back
+
+=head1 VARIABLES
+
+=over 4
+
+=item $QUIT
+
+A package global varible that, if set, will cause
+the worker to exit after finishing the current job.
 
 =back
 
