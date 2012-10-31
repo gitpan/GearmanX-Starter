@@ -8,7 +8,7 @@ use Gearman::XS::Worker;
 use Perl::Unsafe::Signals;
 use POSIX;
 
-our $VERSION = '0.04';
+our $VERSION = '0.05';
 
 our $WORKER;
 
@@ -34,6 +34,7 @@ sub start {
   my $servers = $args->{servers} || [[]];
 
   my $sigterm = $args->{sigterm} || [ 'TERM' ];
+  my $sleep = $args->{sleep_and_retry} || 0;
 
   $logger->info("Forking daemon for $worker_name") if $logger;
 
@@ -80,19 +81,21 @@ sub start {
   }
 
   $logger->info("Starting $worker_name loop") if $logger;
+  my $error_method = $sleep ? 'logwarn' : 'logdie';
   while (1) {
     my $res = eval {
       $critical = 0;
       my $ret;
       UNSAFE_SIGNALS { $ret = $WORKER->work };
       if ($ret != GEARMAN_SUCCESS) {
-        $logger->logdie('Failed to initiate waiting for a job: '. $WORKER->error)
+        $logger->$error_method('Failed to initiate waiting for a job: '. $WORKER->error)
           if $logger;
+        sleep $sleep;
       }
       1;
     };
     if ( !$res && $@ !~ /GearmanXQuitLoop/ ) {
-      $logger->logdie("Error running loop for worker $worker_name [$@]:". $WORKER->error)
+      $logger->logdie("Error running loop for worker $worker_name [$@]:".$WORKER->error)
         if $logger;
     }
     last if $QUIT;
@@ -282,6 +285,11 @@ in a worker with servers already added.
 
 Optional. A L<Gearman::XS::Worker> object. A new object is created if this is
 not supplied.
+
+=item sleep_and_retry
+
+Optional. If a gearman error is returned from the work() method, sleep for this many
+seconds, and retry.
 
 =back
 
